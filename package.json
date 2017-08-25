@@ -1,0 +1,13 @@
+{
+  "name": "underscore-flow-types",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "flow": "./node_modules/.bin/flow"
+  },
+  "dependencies": {
+    "flow-bin": "^0.53.1",
+    "underscore": "^1.8.3"
+  }
+}
