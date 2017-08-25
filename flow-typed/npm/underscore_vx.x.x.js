@@ -121,9 +121,9 @@ declare module 'underscore' {
     ) => ChainedValue<R>,
 		reduceRight: <R, A: $Values<O>>(
 			iteratee: (acc: R, item: A) => R,
-			memo?: ChainedValue<R>,
+			memo?: R,
       context?: mixed
-    ) => R,
+    ) => ChainedValue<R>,
     find: <A: $Values<O>>(predicate: FnPredicate<A>, context?: mixed) => ChainedValue<?A>,
     filter: <A: $Values<O>>(predicate: FnPredicate<A>, context?: mixed) => ChainedList<A>,
 		where: <A: $Values<O>>(properties: Object) => ChainedList<A>,
@@ -304,8 +304,66 @@ declare module 'underscore' {
   declare export function reduce<O: {}, R>(iterator: O, iteratee: (acc: R, item: $Values<O>) => R, memo: R, context?: mixed): R;
   declare export function reduce<I, R>(iterator: I[], iteratee: (acc: R, item: I) => R, memo: R, context?: mixed): R;
 
-  declare export function find<O: {}>(list: O, predicate: FnPredicate<$Values<O>>, context?: mixed): ?$Values<O>;
-  declare export function find<I>(list: I[], predicate: FnPredicate<I>, context?: mixed): ?I;
+  declare export var reduceRight: typeof reduce;
+
+  declare export function find<O: {}>(object: O, predicate: FnPredicate<$Values<O>>, context?: mixed): ?$Values<O>;
+  declare export function find<I>(iterator: I[], predicate: FnPredicate<I>, context?: mixed): ?I;
+
+  declare export function filter<O: {}, R>(iterator: O, predicate: FnPredicate<$Values<O>>, context?: mixed): $Values<O>[];
+  declare export function filter<I>(iterator: I[], predicate: FnPredicate<I>, context?: mixed): I[];
+
+  // Where doesn't work correctly if the iterator is an object?
+  declare export function where<O: {}>(iterator: O, properties: Object): $Values<O>[];
+  declare export function where<I>(iterator: I[], properties: Object): I[];
+
+  declare export function findWhere<O: {}>(iterator: O, properties: Object): ?$Values<O>;
+  declare export function findWhere<I>(iterator: I[], properties: Object): ?I;
+
+  declare export var reject: typeof filter;
+
+  declare export function every<O: {}>(iterator: O, predicate?: FnPredicate<$Values<O>>, context?: mixed): boolean;
+  declare export function every<I>(iterator: I[], predicate?: FnPredicate<I>, context?: mixed): boolean;
+
+  declare export var some: typeof every;
+
+	declare export function contains<O: {}>(iterator: O, value: any, fromIndex?: number): boolean;
+	declare export function contains<I>(iterator: I[], value: any, fromIndex?: number): boolean;
+
+  declare export function invoke<O: {}>(iterator: O, methodName: string, ...args: any[]): any;
+  declare export function invoke<I>(iterator: I[], methodName: string, ...args: any[]): any;
+
+  // pluck doesn't seem to work on collection objects??
+
+  declare export function max<O: {}>(iterator: O, iteratee?: FnIteratee<$Values<O>, *>, context?: mixed): number | typeof Infinity;
+  declare export function max<I>(iterator: I[], iteratee?: FnIteratee<I, *>, context?: mixed): number | typeof Infinity;
+
+  declare export var min: typeof max;
+
+  declare export function sortBy<O: {}>(iterator: O, iteratee: FnIteratee<$Values<O>, *>, context?: mixed): $Values<O>[];
+  declare export function sortBy<I>(iterator: I[], iteratee: FnIteratee<I, *>, context?: mixed): I[];
+
+  declare export function groupBy<I, R>(iterator: I[], iteratee: FnIteratee<I, R>, context?: mixed): { [key: R]: I[] };
+  declare export function groupBy<I, R>(iterator: I[], iteratee: R, context?: mixed): { [key: R]: I[] };
+
+  declare export function countBy<I, R>(iterator: I[], iteratee: FnIteratee<I, R>, context?: mixed): { [key: R]: number };
+  declare export function countBy<I, R>(iterator: I[], iteratee: R, context?: mixed): { [key: R]: number };
+
+  declare export var indexBy: typeof groupBy;
+
+  declare export function shuffle<O: {}>(iterator: O): $Values<O>[];
+  declare export function shuffle<I>(iterator: I[]): I[];
+
+  // For `sample`, we cannot determine whether or not the return type here is a single element or an array.
+  declare export function sample<O: {}>(iterator: O, num?: number): $Values<O> | $Values<O>[];
+  declare export function sample<I>(iterator: I[], num?: number): I | I[];
+
+  declare export function toArray<O: {}>(iterator: O): $Values<O>[];
+  declare export function toArray<I>(iterator: I[]): I[];
+
+  declare export function size<O>(iterator: O): number;
+
+  declare export function partition<O: {}>(iterator: O, predicate: FnPredicate<$Values<O>>): [$Values<O>[], $Values<O>[]];
+  declare export function partition<I>(iterator: I[], predicate: FnPredicate<I>): [I[], I[]];
 
   declare type Underscore = {
     property: (prop: ?string) => (() => any);
@@ -316,32 +374,26 @@ declare module 'underscore' {
 		reduce: typeof reduce,
 		reduceRight: typeof reduce,
     find: typeof find,
-    filter: <I>(list: I[], predicate: FnPredicate<I>, context?: mixed) => I[],
-		where: <I>(list: I[], properties: Object) => I[],
-		findWhere: <I>(list: I[], properties: Object) => ?I,
-		reject: <I>(list: I[], predicate: FnPredicate<I>, context?: mixed) => I[],
-		every: <I>(list: I[], predicate?: FnPredicate<I>, context?: mixed) => boolean,
-		some: <I>(list: I[], predicate?: FnPredicate<I>, context?: mixed) => boolean,
-		contains: <I>(list: I[], value: I, fromIndex?: number) => boolean,
-		invoke: <I>(list: I[], methodName: string, ...args: any[]) => any,
+    filter: typeof filter,
+		where: typeof where,
+		findWhere: typeof findWhere,
+		reject: typeof filter,
+		every: typeof every,
+		some: typeof every,
+		contains: typeof contains,
+		invoke: typeof invoke,
 		pluck: <I>(list: I[], propertyName: string) => any[],
-		max: <I>(list: I[], iteratee?: FnIteratee<I, *>, context?: mixed) => number | typeof Infinity,
-		min: <I>(list: I[], iteratee?: FnIteratee<I, *>, context?: mixed) => number | typeof Infinity,
-		sortBy: <I>(list: I[], iteratee: FnIteratee<I, *>, context?: mixed) => I[],
-		groupBy: <I, R>(list: I[], iteratee: FnIteratee<I, R>, context?: mixed) => { [key: R]: I[] },
-		groupBy: <I, R>(list: I[], iteratee: R, context?: mixed) => { [key: R]: I[] },
-		indexBy: <I, R>(list: I[], iteratee: FnIteratee<I, R>, context?: mixed) => { [key: R]: I[] },
-		indexBy: <I, R>(list: I[], iteratee: R, context?: mixed) => { [key: R]: I[] },
-		countBy: <I, R>(list: I[], iteratee: FnIteratee<I, R>, context?: mixed) => { [key: R]: number },
-		countBy: <I, R>(list: I[], iteratee: R, context?: mixed) => { [key: R]: number },
-    shuffle: <I>(list: I[]) => I[],
-    // Unfortunately, for `sample`, we cannot determine whether or not the return
-    // type here is a single element or an array.
-    sample: <I>(list: I[], num?: number) => I | I[],
-    toArray: <I>(list: I[]) => I[],
-    size: <I>(list: I[]) => number,
-    partition: <I>(list: I[], predicate: FnPredicate<I>) => [I[], I[]]
-
+		max: typeof max,
+		min: typeof max,
+		sortBy: typeof sortBy,
+		groupBy: typeof groupBy,
+		indexBy: typeof groupBy,
+		countBy: typeof countBy,
+    shuffle: typeof shuffle,
+    sample: typeof sample,
+    toArray: typeof toArray,
+    size: typeof size,
+    partition: typeof partition,
   }
 
   declare function UObjectWrapper<O: {}>(arg: O): WrappedObject<O>;

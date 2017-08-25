@@ -4,10 +4,14 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "flow": "./node_modules/.bin/flow"
+    "flow": "./node_modules/.bin/flow",
+    "coverage": "./node_modules/.bin/flow-coverage-report -f ./node_modules/.bin/flow -i **/*.js"
   },
   "dependencies": {
     "flow-bin": "^0.53.1",
     "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "flow-coverage-report": "^0.3.0"
   }
 }

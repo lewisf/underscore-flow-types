@@ -9,3 +9,12 @@ that we use, but it doesn't cover all our use cases. Hopefully this
 repository will provide a more adequate environment (quicker iteration
 cycles, easier testing) for testing all of the different use cases that
 we want to test when writing this type definition than what is provided in flow-typed.
+
+## Testing
+
+First, run `yarn flow` to ensure there are no errors
+Then run `yarn coverage` to ensure the test cases have full coverage
+
+Testing error cases can sometimes feel like an unbounded problem so that
+isn't the focus here. Instead, make sure the test cases completely
+capture what happens in real worl use cases.
