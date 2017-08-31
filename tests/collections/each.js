@@ -2,10 +2,6 @@
 
 import _, { each } from 'underscore';
 
-/* Import */
-each([1, 2, 3], (x) => { console.log(x) });
-each({a: 1, b: 2, c: 3}, (x) => { console.log(x) });
-
 /* Array */
 
 // Standard usage

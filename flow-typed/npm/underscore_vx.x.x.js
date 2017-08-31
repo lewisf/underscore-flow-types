@@ -5,6 +5,8 @@ declare module 'underscore' {
   declare type FnPredicate<T> = FnIteratee<T, boolean>
   declare type UnaryFn<A, R> = (a: A) => R;
 
+  // This should get replaced with the native compose soon!:
+  // https://github.com/facebook/flow/commit/ab9bf44c725efd2ed6d7e1e957c5566b6eb6f688
 	declare type Compose = (<A, B, C, D, E, F, G, H, I, J, K>(
 		fg: UnaryFn<J, K>,
 		fg: UnaryFn<I, J>,
@@ -232,17 +234,17 @@ declare module 'underscore' {
     filter: <A: $Values<O>>(predicate: FnPredicate<A>, context?: mixed) => ChainedList<A>,
 		where: <A: $Values<O>>(properties: Object) => ChainedList<A>,
 		findWhere: <A: $Values<O>>(properties: Object) => ChainedList<?A>,
-		reject: <A: $Values<O>>(predicate: FnPredicate<A>, context?: mixed) => ChainedList<A>,
-		every: <A: $Values<O>>(predicate?: FnPredicate<A>, context?: mixed) => ChainedValue<boolean>,
-		some: <A: $Values<O>>(predicate?: FnPredicate<A>, context?: mixed) => ChainedValue<boolean>,
+		reject: (predicate: FnPredicate<$Values<O>>, context?: mixed) => ChainedList<$Values<O>>,
+		every: (predicate?: FnPredicate<$Values<O>>, context?: mixed) => ChainedValue<boolean>,
+		some: (predicate?: FnPredicate<$Values<O>>, context?: mixed) => ChainedValue<boolean>,
 		contains: <A: $Values<O>>(value: A, fromIndex?: number) => ChainedValue<boolean>,
     // Does this work?
 		invoke: (methodName: string, ...args: any[]) => ChainedValue<any>,
     // Does this work?
 		pluck: (propertyName: string) => ChainedValue<any>,
-		max: <A: $Values<O>>(iteratee?: FnIteratee<A, *>, context?: mixed) => ChainedValue<number | typeof Infinity>,
-		min: <A: $Values<O>>(iteratee?: FnIteratee<A, *>, context?: mixed) => ChainedValue<number | typeof Infinity>,
-		sortBy: <A: $Values<O>>(iteratee: FnIteratee<A, *>, context?: mixed) => ChainedList<A>,
+		max: (iteratee?: FnIteratee<$Values<O>, *>, context?: mixed) => ChainedValue<number>,
+		min: (iteratee?: FnIteratee<$Values<O>, *>, context?: mixed) => ChainedValue<number>,
+		sortBy: (iteratee: FnIteratee<$Values<O>, *>, context?: mixed) => ChainedList<$Values<O>>,
 		groupBy: <R, A: $Values<O>>(iteratee: FnIteratee<A, R>, context?: mixed) => ChainedObject<{ [key: R]: A[] }>,
 		groupBy: <R, A: $Values<O>>(iteratee: R, context?: mixed) => ChainedObject<{ [key: R]: A[] }>,
 		indexBy: <R, A: $Values<O>>(iteratee: FnIteratee<A, R>, context?: mixed) => ChainedObject<{ [key: R]: A[] }>,
@@ -252,10 +254,14 @@ declare module 'underscore' {
     shuffle: <A: $Values<O>>() => ChainedList<A>,
     // Unfortunately, for `sample`, we cannot determine whether or not the return
     // type here is a single element or an array.
-    sample: <A: $Values<O>>(num?: number) => ChainedValue<A> | ChainedList<A>,
+    sample: (
+      & ((n: number) => ChainedList<$Values<O>>)
+      & ((_: void) => ChainedValue<$Values<O>>)
+    ),
+
     toArray: <A: $Values<O>>() => ChainedList<A>,
     size: <A: $Values<O>>() => ChainedValue<number>,
-    // TODO: partition
+    partition: () => ChainedList<$Values<O>[]>,
 
     // Object-only functions
 		keys: () => ChainedList<string>,
@@ -272,8 +278,8 @@ declare module 'underscore' {
     findKey: (predicate: FnPredicate<O>, context?: mixed) => ChainedValue<?$Keys<O>>,
     // TODO: extend
     // TODO: extendOwn
-    pick: (...keys: string[]) => ChainedObject<any>,
-    omit: (...keys: string[]) => ChainedObject<any>,
+    pick: <K: string[]>(...keys: K) => ChainedObject<Object>,
+    omit: (...keys: string[]) => ChainedObject<Object>,
     // TODO: Add more arguments into defaults
     defaults: <D: {}>(defaults: D) => {...D, ...O},
     clone: () => O,
@@ -375,7 +381,7 @@ declare module 'underscore' {
 	};
 
   declare type ChainedList<A> = {
-		value(): A,
+		value(): Array<A>,
     // Collection functions
 		each: (iteratee: FnIteratee<A, void>, context?: mixed) => ChainedList<A>,
 		map: <R>(iteratee: FnIteratee<A, R>, context?: mixed) => ChainedList<R>,
@@ -463,7 +469,7 @@ declare module 'underscore' {
 
   declare export function map<O: {}, R>(iterator: O, iteratee: FnIteratee<$Values<O>, R>, context?: mixed): R[];
   declare export function map<I, R>(iterator: I[], iteratee: FnIteratee<I, R>, context?: mixed): R[];
- 
+
   declare export function reduce<O: {}, R>(iterator: O, iteratee: (acc: R, item: $Values<O>) => R, memo: R, context?: mixed): R;
   declare export function reduce<I, R>(iterator: I[], iteratee: (acc: R, item: I) => R, memo: R, context?: mixed): R;
 
@@ -492,13 +498,16 @@ declare module 'underscore' {
 	declare export function contains<O: {}>(iterator: O, value: any, fromIndex?: number): boolean;
 	declare export function contains<I>(iterator: I[], value: any, fromIndex?: number): boolean;
 
+  // Impossible to figure out return types here
   declare export function invoke<O: {}>(iterator: O, methodName: string, ...args: any[]): any;
   declare export function invoke<I>(iterator: I[], methodName: string, ...args: any[]): any;
 
-  // pluck doesn't seem to work on collection objects??
+  // Impossible to figure out return types here
+  declare export function pluck(iterator: Object, propertyName: string): any;
+  declare export function pluck(iterator: Array<Object>, propertyName: string): any;
 
-  declare export function max<O: {}>(iterator: O, iteratee?: FnIteratee<$Values<O>, *>, context?: mixed): number | typeof Infinity;
-  declare export function max<I>(iterator: I[], iteratee?: FnIteratee<I, *>, context?: mixed): number | typeof Infinity;
+  declare export function max<O: {}>(iterator: O, iteratee?: FnIteratee<$Values<O>, *>, context?: mixed): number;
+  declare export function max<I>(iterator: I[], iteratee?: FnIteratee<I, *>, context?: mixed): number;
 
   declare export var min: typeof max;
 
@@ -534,7 +543,21 @@ declare module 'underscore' {
 
 	// Functions
   declare export function bind<F: Function>(function: F, object: mixed): F;
+  // TODO: Maybe it's worth writing out all the different permutations for _.bind / _.partial
   declare export function bind<F: Function, NF: Function>(function: F, object: mixed, ...arguments: any[]): NF;
+  declare export function bindAll(object: Object, ...methodNames: string[]): void;
+  declare export function partial(function: Function, ...arguments: any[]): Function;
+  declare export function memoize<F: Function>(function: F, hashFunction?: Function): F;
+  declare export function delay(function: Function, wait: number, ...arguments: any[]): void;
+  declare export function defer(function: Function, ...arguments: any[]): void;
+  declare export function throttle(function: Function, wait: number, options?: { leading: boolean, trailing: boolean }): void;
+  declare export function debounce<F: Function>(function: F, wait: number, immediate?: boolean): F;
+  declare export function once<F: Function>(function: F): F;
+  declare export function after<F: Function>(count: number, function: F): F;
+  declare export function before<F: Function>(count: number, function: F): F;
+  declare export function wrap<F: Function, R>(function: F, wrapper: (func: F) => R): R;
+  declare export function negate<R>(predicate: FnPredicate<R>): FnPredicate<R>;
+
 
 	// TODO: For both bind and partial is there a way to do partial function application
 	// and generating a new function?
@@ -550,11 +573,25 @@ declare module 'underscore' {
 	declare export function after<F: Function>(count: number, function: F): F;
 	declare export function before<F: Function>(count: number, function: F): F;
 	declare export function wrap<F: Function>(function: F, wrapper: Function): F;
-	declare export function negate<F: Function>(function: F, predicate: FnPredicate<any>): F;
+	declare export function negate<F: Function, A>(predicate: FnPredicate<A>): FnPredicate<A>;
 	declare export var compose: Compose
 
 	// Object functions
 	// TODO
+  declare export function keys<O: Object>(object: O): string[];
+  declare export function allKeys<O: Object>(object: O): string[];
+  declare export function values<O: Object>(object: O): $Values<O>;
+  declare export function mapObject<O: Object, R>(object: O, iteratee: (val: $Values<O>, key: $Keys<O>) => R, context?: mixed): {[ keys: $Keys<O> ]: R};
+  declare export function pairs<O: Object>(object: O): Array<[$Keys<O>, $Values<O>]>;
+  declare export function invert<O: Object>(object: O): {[ keys: $Values<O> ]: $Keys<O>};
+  // TODO create
+  declare export function functions(object: Object): string[];
+  declare export function findKey(object: Object, predicate: FnPredicate<any>, context?: mixed): ?string;
+  // TODO: extend
+  // TODO: extendOwn
+  // TODO declare export function pick<T: {}, R: {}, I: $Diff<T, R>>(object: T, ...keys: $Keys<I>): R;
+  declare export function pick(object: Object, ...keys: string[]): Object;
+  // TODO declare export function omit<T: {}, I: {}, R: {}>(object: {...I, ...R}, ...keys: string[]): R;
 
 
 
@@ -597,6 +634,7 @@ declare module 'underscore' {
 		// Functions
 
 		// Objects
+    keys: typeof keys,
 
 		// Utility
   }
